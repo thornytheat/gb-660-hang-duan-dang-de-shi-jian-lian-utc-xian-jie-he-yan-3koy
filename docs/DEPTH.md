@@ -14,6 +14,7 @@
 | M4 UTC 航链 | 换算航段并校验先后顺序 | POST /api/itineraries/build | `app/modules/m4_itinerary/builder.py` `app/modules/m4_itinerary/validate.py` | `tests/test_m4_itinerary.py` |
 | M5 衔接判定 | 核对航站楼换乘与等待 | POST /api/connections/check | `app/modules/m5_connections/rules.py` `app/modules/m5_connections/windows.py` | `tests/test_m5_connections.py` |
 | M6 批次导出 | 核对航段守恒并导出时刻 | POST /api/reconcile | `app/modules/m6_batches/compare.py` `app/modules/m6_batches/exporter.py` | `tests/test_m6_batches.py` |
+| M7 航链交付 | 启用契约、制包、签收与重传 | POST /api/delivery/packages | `app/modules/m7_delivery/service.py` `app/modules/m7_delivery/store.py` | `tests/test_m7_delivery.py` |
 
 ## 陷阱登记
 
@@ -29,6 +30,10 @@
 | TRAP-14 | 同航段时刻冲突 | 后写覆盖原计划 | 冲突版本进入隔离区 | `app/modules/m1_legs/parser.py` | `tests/test_m1_legs.py::test_conflicting_duplicate_detected` |
 | TRAP-23 | 衔接窗口端点 | 结束时刻被重复计入 | 使用半开区间 | `app/modules/m5_connections/windows.py` | `tests/test_m5_connections.py::test_half_open_window_excludes_end` |
 | TRAP-25 | 时区版本重叠 | 随机选中一版偏移 | 多个生效版本立即拒绝 | `app/modules/m2_airports/registry.py` | `tests/test_m2_airports.py::test_overlapping_timezone_versions_rejected` |
+| TRAP-27 | 契约切换与制包并发 | 同一包混用两版验收规则 | 制包事务内固定契约版本 | `app/modules/m7_delivery/store.py` | `tests/test_m7_delivery.py::test_contract_switch_and_build_share_one_version` |
+| TRAP-29 | 签收中断后重试 | 重复签收或回执漂移 | 交付号幂等恢复，签收原子落库 | `app/modules/m7_delivery/service.py` | `tests/test_m7_delivery.py::test_interrupted_signing_recovers_by_delivery_no` |
+| TRAP-31 | 重传时重制内容 | 签收凭据对不上内容 | 留存字节原样回传 | `app/modules/m7_delivery/store.py` | `tests/test_m7_delivery.py::test_retransmit_is_byte_identical` |
+| TRAP-33 | 逐段验收漏缺段 | 缺航段的包被签收 | 整链契约校验齐备与 UTC 连续 | `app/modules/m7_delivery/validate.py` | `tests/test_m7_delivery.py::test_new_contract_rejects_missing_segment` |
 
 ## 对账规则
 
@@ -39,4 +44,5 @@
 ## 已知不覆盖
 
 - 不计算天气和空管延误，输入只描述计划时刻。
+- 不扩展出票规则；交付包与回执留存不清除、不压缩。
 

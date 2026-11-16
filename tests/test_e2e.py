@@ -3,7 +3,7 @@ from app.main import app
 
 def test_all_module_pages_accessible():
     client = TestClient(app)
-    for path in ("/legs", "/airports", "/local-time", "/itineraries", "/connections", "/batches"):
+    for path in ("/legs", "/airports", "/local-time", "/itineraries", "/connections", "/batches", "/delivery"):
         response = client.get(path)
         assert response.status_code == 200 and "panel" in response.text
 
